@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import "./App.css";
 
 // Helper function to format dates
@@ -36,6 +36,31 @@ function App() {
   const [entries, setEntries] = useState<Record<string, DailyEntry>>({});
   const [currentContent, setCurrentContent] = useState("");
 
+  // Audio references
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Initialize audio
+  useEffect(() => {
+    // You'll need to add your pen-sound.mp3 to the public folder
+    audioRef.current = new Audio("/pen-sound.mp3");
+    audioRef.current.loop = true;
+    audioRef.current.volume = 0.4; // Slightly higher volume for better feedback
+
+    // Preload the audio
+    audioRef.current.load();
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // Load entry for current date
   useEffect(() => {
     const dateKey = getDateKey(currentDate);
@@ -63,13 +88,50 @@ function App() {
     }));
   };
 
-  // Handle content change
-  const handleContentChange = (content: string) => {
+  // Start pen sound immediately
+  const startPenSound = () => {
+    if (audioRef.current && audioRef.current.paused) {
+      // Start at a random position to avoid repetition
+      audioRef.current.currentTime =
+        Math.random() * (audioRef.current.duration || 0) * 0.8;
+      audioRef.current
+        .play()
+        .catch((e) => console.log("Audio play failed:", e));
+    }
+  };
+
+  // Stop pen sound immediately
+  const stopPenSound = () => {
+    if (audioRef.current && !audioRef.current.paused) {
+      audioRef.current.pause();
+    }
+  };
+
+  // Handle content change with immediate audio response
+  const handleContentChange = (
+    event: React.ChangeEvent<HTMLTextAreaElement>
+  ) => {
+    const content = event.target.value;
+
     if (isPastDate(currentDate)) {
       return; // Cannot edit past dates
     }
+
     setCurrentContent(content);
     saveEntry(content);
+
+    // Start sound immediately when typing
+    startPenSound();
+
+    // Clear previous timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Stop sound 800ms after typing stops (much more responsive)
+    typingTimeoutRef.current = setTimeout(() => {
+      stopPenSound();
+    }, 800);
   };
 
   // Navigate to previous day
@@ -143,7 +205,7 @@ function App() {
             <textarea
               className="page-content"
               value={currentContent}
-              onChange={(e) => handleContentChange(e.target.value)}
+              onChange={handleContentChange}
               placeholder={
                 isPastDate(currentDate)
                   ? "This page is from the past and cannot be edited."
