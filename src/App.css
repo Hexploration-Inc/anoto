@@ -100,6 +100,66 @@
   transform: none;
 }
 
+/* NEW: Reminder indicator styles */
+.reminder-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  color: #92400e;
+}
+
+.reminder-icon {
+  font-size: 1rem;
+  animation: pulse-reminder 2s infinite;
+}
+
+.reminder-count {
+  font-weight: 500;
+}
+
+.reminder-badge {
+  background: var(--margin-red);
+  color: white;
+  border-radius: 50%;
+  width: 1.2rem;
+  height: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: bold;
+  margin-left: 0.5rem;
+  animation: pulse-badge 1.5s infinite;
+}
+
+@keyframes pulse-reminder {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes pulse-badge {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+}
+
 /* Notebook styling */
 .notebook {
   position: relative;
@@ -213,46 +273,112 @@
   border-radius: 4px;
 }
 
-/* Writing area with ruled lines */
+/* Fixed approach: Individual lines instead of repeating gradient to prevent cumulative drift */
+
+:root {
+  /* Use precise pixel values to avoid rounding errors */
+  --base-font-size: 18px;
+  --line-height: 32px;
+}
+
 .writing-area {
   position: relative;
 }
 
 .ruled-content {
-  /* Green ruled lines like in the notebook */
-  background-image: repeating-linear-gradient(
-    transparent,
-    transparent 1.7rem,
-    var(--line-green) 1.7rem,
-    var(--line-green) calc(1.7rem + 0.5px)
-  );
   min-height: 500px;
   position: relative;
-  padding: 0.5rem 0;
+  padding: 16px 0;
 }
 
 .notebook-lines {
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .notebook-line {
-  display: flex;
-  align-items: center;
-  height: 1.7rem;
-  margin-bottom: 0.1rem;
   position: relative;
+  display: block;
+  margin-bottom: 0;
+  height: var(--line-height);
+
+  /* Each line gets its own border - no cumulative errors */
+  border-bottom: 1px solid var(--line-green);
 }
 
-/* Margin checkbox positioning - in the left margin before the red line */
+/* Remove the last line's border to avoid extra line */
+.notebook-line:last-child {
+  border-bottom: none;
+}
+
+.line-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  font-family: var(--font-handwriting);
+  font-size: var(--base-font-size);
+  color: var(--ink-blue);
+  background: transparent;
+  letter-spacing: 0.3px;
+  font-weight: 400;
+  transform: rotate(0.1deg);
+  margin-left: 0.5rem;
+
+  /* Perfect 1:1 alignment - input exactly matches container */
+  line-height: var(--line-height);
+  height: var(--line-height);
+  padding: 0;
+
+  /* Center text vertically within each line */
+  display: flex;
+  align-items: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  :root {
+    --base-font-size: 16px;
+    --line-height: 28px;
+  }
+}
+
+@media (min-width: 1200px) {
+  :root {
+    --base-font-size: 20px;
+    --line-height: 36px;
+  }
+}
+
+.line-input:focus {
+  background: rgba(37, 99, 235, 0.02);
+}
+
+.line-input.completed {
+  text-decoration: line-through;
+  color: #64748b;
+  opacity: 0.7;
+}
+
+.line-input::placeholder {
+  color: #94a3b8;
+  font-style: italic;
+  font-weight: 300;
+}
+
+.line-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+  color: #64748b;
+}
+
 .margin-checkbox {
   position: absolute;
-  left: -2rem; /* Position in the left margin, before the red margin line */
+  left: -2rem;
   top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
   z-index: 3;
-  padding: 0.2rem; /* Add padding for easier clicking */
+  padding: 0.2rem;
 }
 
 .checkbox-brackets {
@@ -284,71 +410,21 @@
   }
 }
 
-.line-input {
-  flex: 1;
-  border: none;
-  outline: none;
-  font-family: var(--font-handwriting);
-  font-size: 1.1rem;
-  line-height: 1.4;
-  color: var(--ink-blue);
-  background: transparent;
-  padding: 0;
-  letter-spacing: 0.3px;
-  font-weight: 400;
-  transform: rotate(0.1deg);
-  height: 1.4rem;
-  margin-left: 0.5rem; /* Small margin from the red line */
-}
-
-.line-input:focus {
-  background: rgba(37, 99, 235, 0.02);
-}
-
-.line-input.completed {
-  text-decoration: line-through;
-  color: #64748b;
-  opacity: 0.7;
-}
-
-.line-input::placeholder {
-  color: #94a3b8;
-  font-style: italic;
-  font-weight: 300;
-}
-
-.line-input:disabled {
-  cursor: not-allowed;
-  opacity: 0.7;
-  color: #64748b;
-}
-
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .notebook-line {
-    height: 1.8rem;
+  .reminder-controls {
+    flex-direction: column;
+    gap: 0.5rem;
   }
 
-  .ruled-content {
-    background-image: repeating-linear-gradient(
-      transparent,
-      transparent 1.8rem,
-      var(--line-green) 1.8rem,
-      var(--line-green) calc(1.8rem + 0.5px)
-    );
+  .test-controls {
+    gap: 0.3rem;
   }
 
-  .margin-checkbox {
-    left: -1.8rem; /* Adjust for mobile */
-    padding: 0.3rem; /* Larger click area on mobile */
-  }
-
-  .checkbox-brackets {
-    font-size: 0.8rem;
-  }
-
-  .line-input {
-    font-size: 1rem;
+  .test-mode-toggle,
+  .create-test-reminder {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.6rem;
   }
 }
 
@@ -401,4 +477,64 @@
       rgba(148, 163, 184, 0.02) 100%
     );
   pointer-events: none;
+}
+
+/* Test controls styling */
+.reminder-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.test-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.test-mode-toggle {
+  padding: 0.4rem 0.8rem;
+  border: 2px solid #f59e0b;
+  background: #fef3c7;
+  color: #92400e;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.test-mode-toggle.active {
+  background: #f59e0b;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+}
+
+.create-test-reminder {
+  padding: 0.4rem 0.8rem;
+  border: 2px solid #10b981;
+  background: #d1fae5;
+  color: #065f46;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.create-test-reminder:hover {
+  background: #10b981;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+}
+
+/* Reminder line styling */
+.line-input.reminder {
+  background: rgba(245, 158, 11, 0.05);
+  border-left: 2px solid #f59e0b;
+  padding-left: 0.5rem;
 }
