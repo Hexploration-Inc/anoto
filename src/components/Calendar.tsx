@@ -251,7 +251,7 @@ export const Calendar: React.FC<CalendarProps> = ({
         </div>
       </div>
 
-      {/* Calendar Legend */}
+      {/* Updated Calendar Legend */}
       <div className="calendar-legend">
         <div className="legend-item">
           <span className="legend-dot today-legend"></span>

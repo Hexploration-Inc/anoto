@@ -294,16 +294,30 @@
   display: inline-block;
 }
 
+/* Calendar Legend - Fix colors to match actual calendar appearance */
 .legend-dot.today-legend {
-  background: var(--today-color);
+  background: var(--today-color); /* Green - matches today highlighting */
 }
 
+/* Fix the has-entries legend dot to show grey */
 .legend-dot.has-entries-legend {
-  background: var(--ink-primary);
+  background: var(--ink-muted); /* Grey color instead of primary blue */
 }
 
 .legend-dot.completed-legend {
-  background: var(--today-color);
+  background: var(--today-color); /* Green - matches completed task dots */
+}
+
+/* Update legend to show combined states */
+.legend-item.combined-state {
+  background: linear-gradient(
+    135deg,
+    var(--today-color) 0%,
+    rgba(22, 163, 74, 0.1) 100%
+  );
+  padding: 0.25rem;
+  border-radius: 3px;
+  border-left: 3px solid var(--ink-primary);
 }
 
 .legend-icon {
@@ -372,4 +386,21 @@
 .high-contrast .task-dot.pending {
   background: transparent;
   border-width: 2px;
+}
+
+/* Better legend samples that match actual appearance */
+.legend-sample {
+  width: 16px;
+  height: 8px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.has-entries-sample {
+  background: linear-gradient(
+    135deg,
+    var(--paper-white) 0%,
+    var(--paper-cream) 100%
+  );
+  border-left: 3px solid var(--ink-primary);
 }
