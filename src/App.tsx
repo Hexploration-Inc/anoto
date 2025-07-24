@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import "./App.css";
 import { ThemeSwitcher } from "./components/ThemeSwitcher";
+import { Calendar } from "./components/Calendar";
 
 // Import Tauri's native notification plugin
 import {
@@ -77,6 +78,7 @@ function App() {
   const [focusedLineIndex, setFocusedLineIndex] = useState<number | null>(null);
   const [hasNotificationPermission, setHasNotificationPermission] =
     useState(false);
+  const [currentView, setCurrentView] = useState<"daily" | "calendar">("daily");
 
   // Audio references
   const penAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -423,35 +425,83 @@ function App() {
   const isEditable = !isPastDate(currentDate);
   const totalLines = 20;
 
+  const switchToCalendar = () => {
+    setCurrentView("calendar");
+  };
+
+  const switchToDaily = () => {
+    setCurrentView("daily");
+  };
+
+  const navigateMonth = (direction: "prev" | "next") => {
+    const newDate = new Date(currentDate);
+    if (direction === "prev") {
+      newDate.setMonth(newDate.getMonth() - 1);
+    } else {
+      newDate.setMonth(newDate.getMonth() + 1);
+    }
+    setCurrentDate(newDate);
+  };
+
+  const handleDateSelect = (date: Date) => {
+    setCurrentDate(date);
+  };
+
   return (
     <main className="planner-container">
       {/* Planner Header */}
       <header className="planner-header">
         <h1 className="planner-title">Anoto</h1>
-        <div className="date-navigation">
+
+        {/* Add View Toggle */}
+        <div className="view-toggle">
           <button
-            className="nav-button"
-            onClick={goToPreviousDay}
-            title="Previous Day"
+            className={`view-button ${currentView === "daily" ? "active" : ""}`}
+            onClick={switchToDaily}
           >
-            ←
+            📝 Daily
           </button>
           <button
-            className="today-button"
-            onClick={goToToday}
-            disabled={isToday(currentDate)}
+            className={`view-button ${
+              currentView === "calendar" ? "active" : ""
+            }`}
+            onClick={switchToCalendar}
           >
-            Today
-            {isToday(currentDate) && getReminderCount(new Date()) > 0 && (
-              <span className="reminder-badge">
-                {getReminderCount(new Date())}
-              </span>
-            )}
-          </button>
-          <button className="nav-button" onClick={goToNextDay} title="Next Day">
-            →
+            📅 Calendar
           </button>
         </div>
+
+        {/* Only show date navigation in daily view */}
+        {currentView === "daily" && (
+          <div className="date-navigation">
+            <button
+              className="nav-button"
+              onClick={goToPreviousDay}
+              title="Previous Day"
+            >
+              ←
+            </button>
+            <button
+              className="today-button"
+              onClick={goToToday}
+              disabled={isToday(currentDate)}
+            >
+              Today
+              {isToday(currentDate) && getReminderCount(new Date()) > 0 && (
+                <span className="reminder-badge">
+                  {getReminderCount(new Date())}
+                </span>
+              )}
+            </button>
+            <button
+              className="nav-button"
+              onClick={goToNextDay}
+              title="Next Day"
+            >
+              →
+            </button>
+          </div>
+        )}
 
         {/* Theme Switcher */}
         <ThemeSwitcher />
@@ -469,92 +519,102 @@ function App() {
       </header>
 
       {/* Notebook */}
-      <div className="notebook">
-        <div className="notebook-binding"></div>
-        <div className={`page ${isEditable ? "editable" : "readonly"}`}>
-          {/* Page Header */}
-          <div className="page-header">
-            <h2 className="page-date">{formatDate(currentDate)}</h2>
-            <div className="page-status">
-              {isPastDate(currentDate) && (
-                <span className="past-indicator">Read Only</span>
-              )}
-              {isToday(currentDate) && (
-                <span className="today-indicator">Today</span>
-              )}
-              {!isPastDate(currentDate) && !isToday(currentDate) && (
-                <span className="future-indicator">Future</span>
-              )}
-            </div>
-          </div>
-
-          {/* Writing Area with Ruled Lines */}
-          <div className="writing-area">
-            <div className="ruled-content">
-              <div className="notebook-lines">
-                {Array.from({ length: totalLines }, (_, lineIndex) => {
-                  const task = currentTasks.find(
-                    (task) => task.id === `line-${lineIndex}`
-                  );
-                  const hasContent = task && task.text.trim().length > 0;
-                  const isFocused = focusedLineIndex === lineIndex;
-                  const shouldShowCheckbox = hasContent || isFocused;
-
-                  return (
-                    <div key={lineIndex} className="notebook-line">
-                      {shouldShowCheckbox && (
-                        <div
-                          className="margin-checkbox"
-                          onClick={() => isEditable && toggleTask(lineIndex)}
-                        >
-                          <span className="checkbox-brackets">
-                            {task?.completed ? "[✓]" : "[ ]"}
-                            {task?.isReminder && !task.completed && " ⏰"}
-                          </span>
-                        </div>
-                      )}
-                      <input
-                        ref={(el) => (inputRefs.current[lineIndex] = el)}
-                        type="text"
-                        value={task?.text || ""}
-                        onChange={(e) =>
-                          handleLineChange(lineIndex, e.target.value)
-                        }
-                        onKeyPress={(e) => handleKeyPress(e, lineIndex)}
-                        onFocus={() => handleFocus(lineIndex)}
-                        onBlur={handleBlur}
-                        disabled={!isEditable}
-                        className={`line-input ${
-                          task?.completed ? "completed" : ""
-                        } ${task?.isReminder ? "reminder" : ""}`}
-                        placeholder={
-                          lineIndex === 0 && isEditable
-                            ? isToday(currentDate)
-                              ? "What's on your agenda today?"
-                              : "Plan for this day... (Future tasks become reminders!)"
-                            : ""
-                        }
-                      />
-                    </div>
-                  );
-                })}
+      {currentView === "calendar" ? (
+        <Calendar
+          currentDate={currentDate}
+          entries={entries}
+          onDateSelect={handleDateSelect}
+          onNavigateMonth={navigateMonth}
+          onSwitchToDaily={switchToDaily}
+        />
+      ) : (
+        <div className="notebook">
+          <div className="notebook-binding"></div>
+          <div className={`page ${isEditable ? "editable" : "readonly"}`}>
+            {/* Page Header */}
+            <div className="page-header">
+              <h2 className="page-date">{formatDate(currentDate)}</h2>
+              <div className="page-status">
+                {isPastDate(currentDate) && (
+                  <span className="past-indicator">Read Only</span>
+                )}
+                {isToday(currentDate) && (
+                  <span className="today-indicator">Today</span>
+                )}
+                {!isPastDate(currentDate) && !isToday(currentDate) && (
+                  <span className="future-indicator">Future</span>
+                )}
               </div>
             </div>
-          </div>
 
-          {/* Page Footer */}
-          <div className="page-footer">
-            {entries[getDateKey(currentDate)] && (
-              <small className="entry-info">
-                Last modified:{" "}
-                {new Date(
-                  entries[getDateKey(currentDate)].lastModified
-                ).toLocaleString()}
-              </small>
-            )}
+            {/* Writing Area with Ruled Lines */}
+            <div className="writing-area">
+              <div className="ruled-content">
+                <div className="notebook-lines">
+                  {Array.from({ length: totalLines }, (_, lineIndex) => {
+                    const task = currentTasks.find(
+                      (task) => task.id === `line-${lineIndex}`
+                    );
+                    const hasContent = task && task.text.trim().length > 0;
+                    const isFocused = focusedLineIndex === lineIndex;
+                    const shouldShowCheckbox = hasContent || isFocused;
+
+                    return (
+                      <div key={lineIndex} className="notebook-line">
+                        {shouldShowCheckbox && (
+                          <div
+                            className="margin-checkbox"
+                            onClick={() => isEditable && toggleTask(lineIndex)}
+                          >
+                            <span className="checkbox-brackets">
+                              {task?.completed ? "[✓]" : "[ ]"}
+                              {task?.isReminder && !task.completed && " ⏰"}
+                            </span>
+                          </div>
+                        )}
+                        <input
+                          ref={(el) => (inputRefs.current[lineIndex] = el)}
+                          type="text"
+                          value={task?.text || ""}
+                          onChange={(e) =>
+                            handleLineChange(lineIndex, e.target.value)
+                          }
+                          onKeyPress={(e) => handleKeyPress(e, lineIndex)}
+                          onFocus={() => handleFocus(lineIndex)}
+                          onBlur={handleBlur}
+                          disabled={!isEditable}
+                          className={`line-input ${
+                            task?.completed ? "completed" : ""
+                          } ${task?.isReminder ? "reminder" : ""}`}
+                          placeholder={
+                            lineIndex === 0 && isEditable
+                              ? isToday(currentDate)
+                                ? "What's on your agenda today?"
+                                : "Plan for this day... (Future tasks become reminders!)"
+                              : ""
+                          }
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Page Footer */}
+            <div className="page-footer">
+              {entries[getDateKey(currentDate)] && (
+                <small className="entry-info">
+                  Last modified:{" "}
+                  {new Date(
+                    entries[getDateKey(currentDate)].lastModified
+                  ).toLocaleString()}
+                </small>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </main>
   );
 }
