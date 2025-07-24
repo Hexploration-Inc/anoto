@@ -213,22 +213,12 @@
   border-radius: 4px;
 }
 
-/* Writing area */
+/* Writing area with ruled lines */
 .writing-area {
   position: relative;
 }
 
-.page-content {
-  width: 100%;
-  border: none;
-  outline: none;
-  font-family: var(--font-handwriting);
-  font-size: 1.1rem;
-  line-height: 1.8;
-  color: var(--ink-blue);
-  background: transparent;
-  resize: none;
-  padding: 0;
+.ruled-content {
   /* Green ruled lines like in the notebook */
   background-image: repeating-linear-gradient(
     transparent,
@@ -236,22 +226,143 @@
     var(--line-green) 1.7rem,
     var(--line-green) calc(1.7rem + 0.5px)
   );
-  letter-spacing: 0.3px;
-  font-weight: 400;
-  transform: rotate(0.2deg);
+  min-height: 500px;
+  position: relative;
+  padding: 0.5rem 0;
 }
 
-.page-content:disabled {
+.notebook-lines {
+  position: relative;
+  z-index: 1;
+}
+
+.notebook-line {
+  display: flex;
+  align-items: center;
+  height: 1.7rem;
+  margin-bottom: 0.1rem;
+  position: relative;
+}
+
+/* Margin checkbox positioning - in the left margin before the red line */
+.margin-checkbox {
+  position: absolute;
+  left: -2rem; /* Position in the left margin, before the red margin line */
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  z-index: 3;
+  padding: 0.2rem; /* Add padding for easier clicking */
+}
+
+.checkbox-brackets {
+  font-family: var(--font-handwriting);
+  font-size: 0.9rem;
+  color: var(--ink-blue);
+  user-select: none;
+  transition: all 0.2s ease;
+  transform: rotate(-1deg);
+  font-weight: 400;
+  letter-spacing: -0.5px;
+  display: block;
+}
+
+.margin-checkbox:hover .checkbox-brackets {
+  color: var(--line-green);
+  transform: rotate(-1deg) scale(1.1);
+}
+
+@keyframes checkbox-bounce {
+  0% {
+    transform: rotate(-1deg) scale(1);
+  }
+  50% {
+    transform: rotate(-1deg) scale(1.2);
+  }
+  100% {
+    transform: rotate(-1deg) scale(1);
+  }
+}
+
+.line-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-family: var(--font-handwriting);
+  font-size: 1.1rem;
+  line-height: 1.4;
+  color: var(--ink-blue);
+  background: transparent;
+  padding: 0;
+  letter-spacing: 0.3px;
+  font-weight: 400;
+  transform: rotate(0.1deg);
+  height: 1.4rem;
+  margin-left: 0.5rem; /* Small margin from the red line */
+}
+
+.line-input:focus {
+  background: rgba(37, 99, 235, 0.02);
+}
+
+.line-input.completed {
+  text-decoration: line-through;
+  color: #64748b;
+  opacity: 0.7;
+}
+
+.line-input::placeholder {
+  color: #94a3b8;
+  font-style: italic;
+  font-weight: 300;
+}
+
+.line-input:disabled {
   cursor: not-allowed;
   opacity: 0.7;
   color: #64748b;
 }
 
-.page-content::placeholder {
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .notebook-line {
+    height: 1.8rem;
+  }
+
+  .ruled-content {
+    background-image: repeating-linear-gradient(
+      transparent,
+      transparent 1.8rem,
+      var(--line-green) 1.8rem,
+      var(--line-green) calc(1.8rem + 0.5px)
+    );
+  }
+
+  .margin-checkbox {
+    left: -1.8rem; /* Adjust for mobile */
+    padding: 0.3rem; /* Larger click area on mobile */
+  }
+
+  .checkbox-brackets {
+    font-size: 0.8rem;
+  }
+
+  .line-input {
+    font-size: 1rem;
+  }
+}
+
+/* Remove the old page-content styles since we're not using textarea anymore */
+.page-content {
+  display: none;
+}
+
+.empty-line {
+  opacity: 0.3;
+}
+
+.empty-line .task-checkbox-area {
   color: #94a3b8;
-  font-style: italic;
-  font-family: var(--font-handwriting);
-  font-weight: 300;
 }
 
 /* Page footer */
@@ -290,36 +401,4 @@
       rgba(148, 163, 184, 0.02) 100%
     );
   pointer-events: none;
-}
-
-/* Responsive design */
-@media (max-width: 768px) {
-  .planner-container {
-    padding: 1rem;
-  }
-
-  .planner-header {
-    flex-direction: column;
-    gap: 1rem;
-    text-align: center;
-  }
-
-  .planner-title {
-    font-size: 2.2rem;
-  }
-
-  .page {
-    padding: 2rem 1rem;
-  }
-
-  .page-header {
-    flex-direction: column;
-    gap: 0.5rem;
-    align-items: center;
-    text-align: center;
-  }
-
-  .page-date {
-    font-size: 1.2rem;
-  }
 }
