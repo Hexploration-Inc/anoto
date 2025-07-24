@@ -1,6 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import "./App.css";
 
+// Import Tauri's native notification plugin
+import {
+  isPermissionGranted,
+  requestPermission,
+  sendNotification,
+} from "@tauri-apps/plugin-notification";
+
 // Helper function to format dates
 const formatDate = (date: Date): string => {
   return date.toLocaleDateString("en-US", {
@@ -11,24 +18,48 @@ const formatDate = (date: Date): string => {
   });
 };
 
+// Helper function to get date key for storage (LOCAL timezone)
+const getDateKey = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 // Helper function to check if a date is in the past
 const isPastDate = (date: Date): boolean => {
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  date.setHours(0, 0, 0, 0);
-  return date < today;
+  const dateKey = getDateKey(date);
+  const todayKey = getDateKey(today);
+  return dateKey < todayKey;
 };
 
-// Helper function to get date key for storage
-const getDateKey = (date: Date): string => {
-  return date.toISOString().split("T")[0];
+// Helper function to check if a date is in the future
+const isFutureDate = (date: Date): boolean => {
+  const today = new Date();
+  const dateKey = getDateKey(date);
+  const todayKey = getDateKey(today);
+  return dateKey > todayKey;
 };
 
+// Helper function to check if a date is today
+const isToday = (date: Date): boolean => {
+  const today = new Date();
+  const dateKey = getDateKey(date);
+  const todayKey = getDateKey(today);
+  return dateKey === todayKey;
+};
+
+// Updated Task interface with reminder support
 interface Task {
   id: string;
   text: string;
   completed: boolean;
   createdAt: string;
+  // Reminder fields
+  isReminder: boolean; // Automatically true for tasks on future dates
+  reminderShown: boolean; // Track if notification was shown
+  reminderDate: string; // The date this reminder is for
 }
 
 interface DailyEntry {
@@ -43,21 +74,153 @@ function App() {
   const [entries, setEntries] = useState<Record<string, DailyEntry>>({});
   const [currentTasks, setCurrentTasks] = useState<Task[]>([]);
   const [focusedLineIndex, setFocusedLineIndex] = useState<number | null>(null);
+  const [hasNotificationPermission, setHasNotificationPermission] =
+    useState(false);
 
   // Audio references
   const penAudioRef = useRef<HTMLAudioElement | null>(null);
   const strikeAudioRef = useRef<HTMLAudioElement | null>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimeoutRef = useRef<number | null>(null);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  // Reminder checking interval
+  const reminderIntervalRef = useRef<number | null>(null);
+
+  // Request notification permission on app start
+  useEffect(() => {
+    const requestNotificationPermission = async () => {
+      try {
+        const permission = await isPermissionGranted();
+        if (!permission) {
+          const result = await requestPermission();
+          setHasNotificationPermission(result === "granted");
+        } else {
+          setHasNotificationPermission(true);
+        }
+      } catch (error) {
+        console.error("Failed to request notification permission:", error);
+        setHasNotificationPermission(false);
+      }
+    };
+
+    requestNotificationPermission();
+  }, []);
+
+  // Set up reminder checking interval (every minute)
+  useEffect(() => {
+    reminderIntervalRef.current = setInterval(() => {
+      checkForDueReminders();
+    }, 60000); // Check every minute
+
+    // Also check immediately when the app starts
+    checkForDueReminders();
+
+    return () => {
+      if (reminderIntervalRef.current) {
+        clearInterval(reminderIntervalRef.current);
+      }
+    };
+  }, [entries, hasNotificationPermission]);
+
+  // Function to check for due reminders
+  const checkForDueReminders = () => {
+    if (!hasNotificationPermission) return;
+
+    const today = getDateKey(new Date());
+    const todayEntry = entries[today];
+
+    if (!todayEntry) return;
+
+    // Find reminders that are due today and haven't been shown yet
+    const dueReminders = todayEntry.tasks.filter(
+      (task) => task.isReminder && !task.reminderShown && !task.completed
+    );
+
+    dueReminders.forEach((reminder) => {
+      showNotification(reminder);
+      markReminderAsShown(reminder.id, today);
+    });
+  };
+
+  // Function to show notification
+  const showNotification = async (task: Task) => {
+    if (!hasNotificationPermission) return;
+
+    try {
+      await sendNotification({
+        title: "📝 Anoto Reminder",
+        body: task.text,
+      });
+    } catch (error) {
+      // Fallback to web notification in development
+      if ("Notification" in window && Notification.permission === "granted") {
+        const notification = new Notification("📝 Anoto Reminder", {
+          body: task.text,
+          icon: "/tauri.svg",
+          tag: task.id,
+        });
+
+        setTimeout(() => {
+          try {
+            if (notification && typeof notification.close === "function") {
+              notification.close();
+            }
+          } catch (e) {
+            // Ignore close errors
+          }
+        }, 10000);
+
+        notification.onclick = () => {
+          window.focus();
+          try {
+            notification.close();
+          } catch (e) {
+            // Ignore
+          }
+        };
+      }
+    }
+  };
+
+  // Function to mark reminder as shown
+  const markReminderAsShown = (taskId: string, dateKey: string) => {
+    setEntries((prev) => {
+      const entry = prev[dateKey];
+      if (!entry) return prev;
+
+      const updatedTasks = entry.tasks.map((task) =>
+        task.id === taskId ? { ...task, reminderShown: true } : task
+      );
+
+      return {
+        ...prev,
+        [dateKey]: {
+          ...entry,
+          tasks: updatedTasks,
+          lastModified: new Date().toISOString(),
+        },
+      };
+    });
+  };
+
+  // Helper function to count reminders for a given date
+  const getReminderCount = (date: Date): number => {
+    const dateKey = getDateKey(date);
+    const entry = entries[dateKey];
+    if (!entry) return 0;
+
+    return entry.tasks.filter(
+      (task) => task.isReminder && !task.completed && task.text.trim() !== ""
+    ).length;
+  };
 
   // Initialize audio
   useEffect(() => {
-    penAudioRef.current = new Audio("/pen-sound.mp3");
+    penAudioRef.current = new Audio("/pen-sound.mov");
     penAudioRef.current.loop = true;
     penAudioRef.current.volume = 0.4;
     penAudioRef.current.load();
 
-    // Use the strike sound for checking tasks
     strikeAudioRef.current = new Audio("/strike-sound.mp3");
     strikeAudioRef.current.volume = 0.6;
     strikeAudioRef.current.load();
@@ -82,7 +245,7 @@ function App() {
     const entry = entries[dateKey];
     const tasks = entry?.tasks || [];
     setCurrentTasks(tasks);
-    setFocusedLineIndex(null); // Reset focus when changing dates
+    setFocusedLineIndex(null);
   }, [currentDate, entries]);
 
   // Save entry
@@ -98,32 +261,30 @@ function App() {
       ...prev,
       [dateKey]: {
         date: dateKey,
-        tasks: tasks.filter((task) => task.text.trim() !== ""), // Only save non-empty tasks
+        tasks: tasks.filter((task) => task.text.trim() !== ""),
         createdAt: prev[dateKey]?.createdAt || now,
         lastModified: now,
       },
     }));
   };
 
-  // Play strike sound for animation duration only
+  // Audio functions
   const playStrikeSound = () => {
     if (strikeAudioRef.current) {
-      strikeAudioRef.current.currentTime = 0; // Start from beginning
+      strikeAudioRef.current.currentTime = 0;
       strikeAudioRef.current
         .play()
         .catch((e) => console.log("Strike audio play failed:", e));
 
-      // Stop the sound after 500ms to match the strikethrough animation duration
       setTimeout(() => {
         if (strikeAudioRef.current) {
           strikeAudioRef.current.pause();
-          strikeAudioRef.current.currentTime = 0; // Reset for next use
+          strikeAudioRef.current.currentTime = 0;
         }
-      }, 500); // 500ms matches the CSS animation duration
+      }, 500);
     }
   };
 
-  // Start pen sound
   const startPenSound = () => {
     if (penAudioRef.current && penAudioRef.current.paused) {
       penAudioRef.current.currentTime =
@@ -134,7 +295,6 @@ function App() {
     }
   };
 
-  // Stop pen sound
   const stopPenSound = () => {
     if (penAudioRef.current && !penAudioRef.current.paused) {
       penAudioRef.current.pause();
@@ -191,21 +351,24 @@ function App() {
     );
 
     if (taskIndex !== -1) {
-      // Update existing task
       if (text.trim()) {
         updatedTasks[taskIndex].text = text;
       } else {
-        // Remove task if text is empty
         updatedTasks.splice(taskIndex, 1);
       }
     } else if (text.trim()) {
-      // Create new task only if there's text
-      updatedTasks.push({
+      // Create new task with automatic reminder detection
+      const newTask: Task = {
         id: `line-${lineIndex}`,
         text: text,
         completed: false,
         createdAt: new Date().toISOString(),
-      });
+        // Automatically mark as reminder if it's a future date
+        isReminder: isFutureDate(currentDate),
+        reminderShown: false,
+        reminderDate: getDateKey(currentDate),
+      };
+      updatedTasks.push(newTask);
     }
 
     setCurrentTasks(updatedTasks);
@@ -218,11 +381,9 @@ function App() {
     lineIndex: number
   ) => {
     if (event.key === "Enter" && !isPastDate(currentDate)) {
-      // Move to next line
       const nextLineIndex = lineIndex + 1;
       setFocusedLineIndex(nextLineIndex);
 
-      // Focus next input after a short delay
       setTimeout(() => {
         if (inputRefs.current[nextLineIndex]) {
           inputRefs.current[nextLineIndex]?.focus();
@@ -259,9 +420,6 @@ function App() {
   };
 
   const isEditable = !isPastDate(currentDate);
-  const isToday = getDateKey(currentDate) === getDateKey(new Date());
-
-  // Create enough lines to fill the page (20 lines total)
   const totalLines = 20;
 
   return (
@@ -280,17 +438,33 @@ function App() {
           <button
             className="today-button"
             onClick={goToToday}
-            disabled={isToday}
+            disabled={isToday(currentDate)}
           >
             Today
+            {isToday(currentDate) && getReminderCount(new Date()) > 0 && (
+              <span className="reminder-badge">
+                {getReminderCount(new Date())}
+              </span>
+            )}
           </button>
           <button className="nav-button" onClick={goToNextDay} title="Next Day">
             →
           </button>
         </div>
+
+        {/* Reminder status indicator */}
+        {getReminderCount(currentDate) > 0 && (
+          <div className="reminder-indicator">
+            <span className="reminder-icon">⏰</span>
+            <span className="reminder-count">
+              {getReminderCount(currentDate)} reminder
+              {getReminderCount(currentDate) !== 1 ? "s" : ""}
+            </span>
+          </div>
+        )}
       </header>
 
-      {/* Notebook Page */}
+      {/* Notebook */}
       <div className="notebook">
         <div className="notebook-binding"></div>
         <div className={`page ${isEditable ? "editable" : "readonly"}`}>
@@ -301,8 +475,10 @@ function App() {
               {isPastDate(currentDate) && (
                 <span className="past-indicator">Read Only</span>
               )}
-              {isToday && <span className="today-indicator">Today</span>}
-              {!isPastDate(currentDate) && !isToday && (
+              {isToday(currentDate) && (
+                <span className="today-indicator">Today</span>
+              )}
+              {!isPastDate(currentDate) && !isToday(currentDate) && (
                 <span className="future-indicator">Future</span>
               )}
             </div>
@@ -322,7 +498,6 @@ function App() {
 
                   return (
                     <div key={lineIndex} className="notebook-line">
-                      {/* Only show checkbox if line has content or is focused */}
                       {shouldShowCheckbox && (
                         <div
                           className="margin-checkbox"
@@ -330,6 +505,7 @@ function App() {
                         >
                           <span className="checkbox-brackets">
                             {task?.completed ? "[✓]" : "[ ]"}
+                            {task?.isReminder && !task.completed && " ⏰"}
                           </span>
                         </div>
                       )}
@@ -346,12 +522,12 @@ function App() {
                         disabled={!isEditable}
                         className={`line-input ${
                           task?.completed ? "completed" : ""
-                        }`}
+                        } ${task?.isReminder ? "reminder" : ""}`}
                         placeholder={
                           lineIndex === 0 && isEditable
-                            ? isToday
+                            ? isToday(currentDate)
                               ? "What's on your agenda today?"
-                              : "Plan for this day..."
+                              : "Plan for this day... (Future tasks become reminders!)"
                             : ""
                         }
                       />
