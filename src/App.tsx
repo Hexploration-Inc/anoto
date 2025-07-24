@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import "./App.css";
+import { ThemeSwitcher } from "./components/ThemeSwitcher";
 
 // Import Tauri's native notification plugin
 import {
@@ -451,6 +452,9 @@ function App() {
             →
           </button>
         </div>
+
+        {/* Theme Switcher */}
+        <ThemeSwitcher />
 
         {/* Reminder status indicator */}
         {getReminderCount(currentDate) > 0 && (

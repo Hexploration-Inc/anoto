@@ -1,5 +1,5 @@
-/* Import Google Fonts that match handwritten notebook style */
-@import url("https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Caveat:wght@400;500;600&family=Indie+Flower&family=Kalam:wght@300;400;700&family=Shadows+Into+Light&display=swap");
+/* Import Google Fonts including Inter for modern theme */
+@import url("https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Caveat:wght@400;500;600&family=Indie+Flower&family=Kalam:wght@300;400;700&family=Shadows+Into+Light&family=Inter:wght@300;400;500;600;700&display=swap");
 
 /* Reset and base styles */
 * {
@@ -9,27 +9,44 @@
 }
 
 :root {
-  /* Paper-like color palette matching the image */
+  /* Default theme variables - will be overridden by ThemeContext */
   --paper-white: #f8f9fa;
   --paper-cream: #f5f6f7;
-  --ink-blue: #2563eb;
-  --ink-black: #1e293b;
-  --line-green: #16a34a;
-  --line-green-light: #dcfce7;
+  --paper-gray: #f1f5f9;
+  --ink-primary: #2563eb;
+  --ink-secondary: #1e293b;
+  --ink-muted: #64748b;
+  --rule-color: #16a34a;
+  --rule-color-light: #dcfce7;
   --margin-red: #dc2626;
   --binding-brown: #8b4513;
+  --today-color: #16a34a;
+  --past-color: #dc2626;
+  --future-color: #2563eb;
+  --focus-color: rgba(37, 99, 235, 0.02);
+  --hover-color: rgba(37, 99, 235, 0.1);
   --shadow-light: rgba(0, 0, 0, 0.1);
   --shadow-medium: rgba(0, 0, 0, 0.15);
+  --shadow-dark: rgba(0, 0, 0, 0.25);
 
-  /* Notebook-style fonts matching the handwriting */
+  /* Typography variables */
   --font-handwriting: "Kalam", "Architects Daughter", "Indie Flower", cursive;
   --font-casual-writing: "Caveat", "Shadows Into Light", cursive;
   --font-ui: "Architects Daughter", sans-serif;
 
+  /* Spacing variables */
+  --base-font-size: 18px;
+  --line-height: 32px;
+  --page-margin: 3rem;
+
   font-size: 16px;
   line-height: 1.6;
-  color: var(--ink-black);
-  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  color: var(--ink-primary);
+  background: linear-gradient(
+    135deg,
+    var(--paper-gray) 0%,
+    var(--paper-cream) 100%
+  );
   min-height: 100vh;
 }
 
@@ -41,19 +58,21 @@
   min-height: 100vh;
 }
 
-/* Header */
+/* Header - Enhanced to accommodate theme switcher */
 .planner-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
   padding: 0 1rem;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .planner-title {
   font-size: 2.8rem;
   font-weight: 400;
-  color: var(--ink-blue);
+  color: var(--ink-primary);
   font-family: var(--font-casual-writing);
   letter-spacing: 1px;
   transform: rotate(-0.5deg);
@@ -68,9 +87,9 @@
 .nav-button,
 .today-button {
   padding: 0.5rem 1rem;
-  border: 2px solid var(--ink-blue);
+  border: 2px solid var(--ink-primary);
   background: var(--paper-white);
-  color: var(--ink-blue);
+  color: var(--ink-primary);
   border-radius: 6px;
   cursor: pointer;
   font-family: var(--font-ui);
@@ -81,7 +100,7 @@
 
 .nav-button:hover,
 .today-button:hover {
-  background: var(--ink-blue);
+  background: var(--ink-primary);
   color: var(--paper-white);
   transform: translateY(-1px);
   box-shadow: 0 3px 6px var(--shadow-medium);
@@ -95,12 +114,12 @@
 
 .today-button:disabled:hover {
   background: var(--paper-white);
-  color: var(--ink-blue);
+  color: var(--ink-primary);
   box-shadow: none;
   transform: none;
 }
 
-/* NEW: Reminder indicator styles */
+/* Reminder indicator styles */
 .reminder-indicator {
   display: flex;
   align-items: center;
@@ -160,7 +179,7 @@
   }
 }
 
-/* Notebook styling */
+/* Enhanced Notebook styling with theme support */
 .notebook {
   position: relative;
   background: linear-gradient(
@@ -176,6 +195,7 @@
   min-height: 700px;
 }
 
+/* Default binding style */
 .notebook-binding {
   position: absolute;
   left: 0;
@@ -192,13 +212,39 @@
   box-shadow: inset -2px 0 4px rgba(0, 0, 0, 0.3);
 }
 
-/* Page styling */
+/* Modern binding style */
+.binding-modern .notebook-binding {
+  background: var(--binding-brown);
+  box-shadow: inset -1px 0 2px var(--shadow-light);
+}
+
+/* Minimal binding style */
+.binding-minimal .notebook-binding {
+  background: var(--rule-color);
+  box-shadow: none;
+  width: 2px;
+}
+
+.binding-minimal .notebook {
+  background: linear-gradient(
+    90deg,
+    var(--rule-color) 0%,
+    var(--rule-color) 2px,
+    var(--paper-cream) 2px
+  );
+}
+
+/* Page styling with enhanced theme support */
 .page {
   margin-left: 40px;
-  padding: 3rem 2rem 2rem 3rem;
+  padding: var(--page-margin) 2rem 2rem var(--page-margin);
   background: var(--paper-white);
   min-height: 700px;
   position: relative;
+}
+
+.binding-minimal .page {
+  margin-left: 2px;
 }
 
 /* Red margin line like in notebook */
@@ -215,13 +261,8 @@
 }
 
 .page.readonly {
-  background: #f8f9fa;
-  color: #64748b;
-}
-
-.page.readonly .page-content {
-  background: transparent;
-  color: #64748b;
+  background: var(--paper-gray);
+  color: var(--ink-muted);
 }
 
 /* Page header */
@@ -236,7 +277,7 @@
 .page-date {
   font-size: 1.4rem;
   font-weight: 400;
-  color: var(--ink-blue);
+  color: var(--ink-primary);
   font-family: var(--font-handwriting);
   line-height: 1.3;
   transform: rotate(-0.3deg);
@@ -253,34 +294,27 @@
 }
 
 .past-indicator {
-  color: var(--margin-red);
-  background: #fef2f2;
+  color: var(--past-color);
+  background: var(--rule-color-light);
   padding: 0.2rem 0.5rem;
   border-radius: 4px;
 }
 
 .today-indicator {
-  color: var(--line-green);
-  background: var(--line-green-light);
+  color: var(--today-color);
+  background: var(--rule-color-light);
   padding: 0.2rem 0.5rem;
   border-radius: 4px;
 }
 
 .future-indicator {
-  color: var(--ink-blue);
-  background: #eff6ff;
+  color: var(--future-color);
+  background: var(--rule-color-light);
   padding: 0.2rem 0.5rem;
   border-radius: 4px;
 }
 
-/* Fixed approach: Individual lines instead of repeating gradient to prevent cumulative drift */
-
-:root {
-  /* Use precise pixel values to avoid rounding errors */
-  --base-font-size: 18px;
-  --line-height: 32px;
-}
-
+/* Enhanced writing area with multiple line styles */
 .writing-area {
   position: relative;
 }
@@ -301,9 +335,39 @@
   display: block;
   margin-bottom: 0;
   height: var(--line-height);
+}
 
-  /* Each line gets its own border - no cumulative errors */
-  border-bottom: 1px solid var(--line-green);
+/* Default ruled lines */
+.line-style-ruled .notebook-line {
+  border-bottom: 1px solid var(--rule-color);
+}
+
+/* Dotted lines for bullet journal style */
+.line-style-dotted .notebook-line {
+  border-bottom: none;
+  background-image: radial-gradient(
+    circle,
+    var(--rule-color) 1px,
+    transparent 1px
+  );
+  background-size: 24px 24px;
+  background-position: 0 0;
+}
+
+/* Grid lines */
+.line-style-grid .notebook-line {
+  border-bottom: 1px solid var(--rule-color);
+  background-image: linear-gradient(
+    90deg,
+    var(--rule-color) 1px,
+    transparent 1px
+  );
+  background-size: 24px 100%;
+}
+
+/* Blank pages */
+.line-style-blank .notebook-line {
+  border-bottom: none;
 }
 
 /* Remove the last line's border to avoid extra line */
@@ -311,56 +375,38 @@
   border-bottom: none;
 }
 
+/* Enhanced input styling */
 .line-input {
   width: 100%;
   border: none;
   outline: none;
   font-family: var(--font-handwriting);
   font-size: var(--base-font-size);
-  color: var(--ink-blue);
+  color: var(--ink-primary);
   background: transparent;
   letter-spacing: 0.3px;
   font-weight: 400;
   transform: rotate(0.1deg);
   margin-left: 0.5rem;
-
-  /* Perfect 1:1 alignment - input exactly matches container */
   line-height: var(--line-height);
   height: var(--line-height);
   padding: 0;
-
-  /* Center text vertically within each line */
   display: flex;
   align-items: center;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  :root {
-    --base-font-size: 16px;
-    --line-height: 28px;
-  }
-}
-
-@media (min-width: 1200px) {
-  :root {
-    --base-font-size: 20px;
-    --line-height: 36px;
-  }
-}
-
 .line-input:focus {
-  background: rgba(37, 99, 235, 0.02);
+  background: var(--focus-color);
 }
 
 .line-input.completed {
   text-decoration: line-through;
-  color: #64748b;
+  color: var(--ink-muted);
   opacity: 0.7;
 }
 
 .line-input::placeholder {
-  color: #94a3b8;
+  color: var(--ink-muted);
   font-style: italic;
   font-weight: 300;
 }
@@ -368,9 +414,10 @@
 .line-input:disabled {
   cursor: not-allowed;
   opacity: 0.7;
-  color: #64748b;
+  color: var(--ink-muted);
 }
 
+/* Enhanced checkbox styling */
 .margin-checkbox {
   position: absolute;
   left: -2rem;
@@ -384,7 +431,7 @@
 .checkbox-brackets {
   font-family: var(--font-handwriting);
   font-size: 0.9rem;
-  color: var(--ink-blue);
+  color: var(--ink-primary);
   user-select: none;
   transition: all 0.2s ease;
   transform: rotate(-1deg);
@@ -394,7 +441,7 @@
 }
 
 .margin-checkbox:hover .checkbox-brackets {
-  color: var(--line-green);
+  color: var(--today-color);
   transform: rotate(-1deg) scale(1.1);
 }
 
@@ -410,35 +457,11 @@
   }
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .reminder-controls {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .test-controls {
-    gap: 0.3rem;
-  }
-
-  .test-mode-toggle,
-  .create-test-reminder {
-    font-size: 0.7rem;
-    padding: 0.3rem 0.6rem;
-  }
-}
-
-/* Remove the old page-content styles since we're not using textarea anymore */
-.page-content {
-  display: none;
-}
-
-.empty-line {
-  opacity: 0.3;
-}
-
-.empty-line .task-checkbox-area {
-  color: #94a3b8;
+/* Reminder line styling */
+.line-input.reminder {
+  background: var(--focus-color);
+  border-left: 2px solid #f59e0b;
+  padding-left: 0.5rem;
 }
 
 /* Page footer */
@@ -446,19 +469,19 @@
   position: absolute;
   bottom: 2rem;
   right: 2rem;
-  left: 3rem;
+  left: var(--page-margin);
   padding-top: 1rem;
 }
 
 .entry-info {
-  color: #64748b;
+  color: var(--ink-muted);
   font-size: 0.7rem;
   font-style: italic;
   font-family: var(--font-handwriting);
   transform: rotate(-0.2deg);
 }
 
-/* Add notebook paper texture */
+/* Add notebook paper texture - conditional based on theme */
 .page::after {
   content: "";
   position: absolute;
@@ -469,17 +492,57 @@
   background: radial-gradient(
       circle at 25% 25%,
       transparent 50%,
-      rgba(148, 163, 184, 0.02) 100%
+      var(--shadow-light) 100%
     ),
     radial-gradient(
       circle at 75% 75%,
       transparent 50%,
-      rgba(148, 163, 184, 0.02) 100%
+      var(--shadow-light) 100%
     );
   pointer-events: none;
+  opacity: 0.3;
 }
 
-/* Test controls styling */
+/* Disable texture for themes that don't want it */
+.no-texture .page::after {
+  display: none;
+}
+
+/* High contrast mode adjustments */
+.high-contrast .line-input {
+  font-weight: 600;
+}
+
+.high-contrast .checkbox-brackets {
+  font-weight: 700;
+}
+
+/* Enhanced responsive design */
+@media (max-width: 768px) {
+  :root {
+    --base-font-size: 16px;
+    --line-height: 28px;
+  }
+
+  .planner-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .date-navigation {
+    justify-content: center;
+  }
+}
+
+@media (min-width: 1200px) {
+  :root {
+    --base-font-size: 20px;
+    --line-height: 36px;
+  }
+}
+
+/* Rest of existing styles... */
 .reminder-controls {
   display: flex;
   align-items: center;
@@ -532,9 +595,14 @@
   box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
 }
 
-/* Reminder line styling */
-.line-input.reminder {
-  background: rgba(245, 158, 11, 0.05);
-  border-left: 2px solid #f59e0b;
-  padding-left: 0.5rem;
+.page-content {
+  display: none;
+}
+
+.empty-line {
+  opacity: 0.3;
+}
+
+.empty-line .task-checkbox-area {
+  color: #94a3b8;
 }

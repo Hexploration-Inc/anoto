@@ -1,0 +1,246 @@
+import { Theme } from "../types/theme";
+
+// Classic theme (current design)
+export const classicTheme: Theme = {
+  id: "classic",
+  name: "Classic Notebook",
+  description: "Traditional ruled notebook with blue ink",
+  category: "paper-style",
+  colors: {
+    paperWhite: "#f8f9fa",
+    paperCream: "#f5f6f7",
+    paperGray: "#f1f5f9",
+    inkPrimary: "#2563eb",
+    inkSecondary: "#1e293b",
+    inkMuted: "#64748b",
+    ruleColor: "#16a34a",
+    ruleColorLight: "#dcfce7",
+    marginRed: "#dc2626",
+    bindingBrown: "#8b4513",
+    todayColor: "#16a34a",
+    pastColor: "#dc2626",
+    futureColor: "#2563eb",
+    focusColor: "rgba(37, 99, 235, 0.02)",
+    hoverColor: "rgba(37, 99, 235, 0.1)",
+    shadowLight: "rgba(0, 0, 0, 0.1)",
+    shadowMedium: "rgba(0, 0, 0, 0.15)",
+    shadowDark: "rgba(0, 0, 0, 0.25)",
+  },
+  fonts: {
+    handwriting: '"Kalam", "Architects Daughter", "Indie Flower", cursive',
+    casualWriting: '"Caveat", "Shadows Into Light", cursive',
+    ui: '"Architects Daughter", sans-serif',
+  },
+  spacing: {
+    lineHeight: "32px",
+    fontSize: "18px",
+    pageMargin: "3rem",
+  },
+  lineStyle: "ruled",
+  paperTexture: true,
+  bindingStyle: "classic",
+  highContrast: false,
+};
+
+// Vintage theme
+export const vintageTheme: Theme = {
+  id: "vintage",
+  name: "Vintage Journal",
+  description: "Aged paper with sepia tones and classic fountain pen feel",
+  category: "paper-style",
+  colors: {
+    paperWhite: "#faf7f2",
+    paperCream: "#f5f1e8",
+    paperGray: "#f0ebe0",
+    inkPrimary: "#654321",
+    inkSecondary: "#3c2415",
+    inkMuted: "#8b7355",
+    ruleColor: "#a0937a",
+    ruleColorLight: "#f5f1e8",
+    marginRed: "#8b3a3a",
+    bindingBrown: "#5d4037",
+    todayColor: "#6b5b73",
+    pastColor: "#8b3a3a",
+    futureColor: "#654321",
+    focusColor: "rgba(101, 67, 33, 0.05)",
+    hoverColor: "rgba(101, 67, 33, 0.1)",
+    shadowLight: "rgba(101, 67, 33, 0.1)",
+    shadowMedium: "rgba(101, 67, 33, 0.15)",
+    shadowDark: "rgba(101, 67, 33, 0.25)",
+  },
+  fonts: {
+    handwriting: '"Indie Flower", "Kalam", cursive',
+    casualWriting: '"Shadows Into Light", "Caveat", cursive',
+    ui: '"Architects Daughter", serif',
+  },
+  spacing: {
+    lineHeight: "34px",
+    fontSize: "17px",
+    pageMargin: "3.5rem",
+  },
+  lineStyle: "ruled",
+  paperTexture: true,
+  bindingStyle: "classic",
+  highContrast: false,
+};
+
+// Modern theme
+export const modernTheme: Theme = {
+  id: "modern",
+  name: "Modern Minimal",
+  description: "Clean lines with contemporary colors and crisp typography",
+  category: "paper-style",
+  colors: {
+    paperWhite: "#ffffff",
+    paperCream: "#fdfdfd",
+    paperGray: "#f8fafc",
+    inkPrimary: "#1f2937",
+    inkSecondary: "#374151",
+    inkMuted: "#6b7280",
+    ruleColor: "#e5e7eb",
+    ruleColorLight: "#f9fafb",
+    marginRed: "#ef4444",
+    bindingBrown: "#6b7280",
+    todayColor: "#10b981",
+    pastColor: "#ef4444",
+    futureColor: "#3b82f6",
+    focusColor: "rgba(59, 130, 246, 0.05)",
+    hoverColor: "rgba(59, 130, 246, 0.1)",
+    shadowLight: "rgba(0, 0, 0, 0.05)",
+    shadowMedium: "rgba(0, 0, 0, 0.1)",
+    shadowDark: "rgba(0, 0, 0, 0.15)",
+  },
+  fonts: {
+    handwriting: '"Inter", "SF Pro Display", system-ui, sans-serif',
+    casualWriting: '"Inter", system-ui, sans-serif',
+    ui: '"Inter", system-ui, sans-serif',
+  },
+  spacing: {
+    lineHeight: "28px",
+    fontSize: "16px",
+    pageMargin: "2.5rem",
+  },
+  lineStyle: "ruled",
+  paperTexture: false,
+  bindingStyle: "minimal",
+  highContrast: false,
+};
+
+// Dark theme
+export const darkTheme: Theme = {
+  id: "dark",
+  name: "Night Mode",
+  description: "Dark paper with light ink for low-light writing",
+  category: "color-scheme",
+  colors: {
+    paperWhite: "#1e293b",
+    paperCream: "#1a202c",
+    paperGray: "#2d3748",
+    inkPrimary: "#f1f5f9",
+    inkSecondary: "#e2e8f0",
+    inkMuted: "#94a3b8",
+    ruleColor: "#4a5568",
+    ruleColorLight: "#2d3748",
+    marginRed: "#fc8181",
+    bindingBrown: "#4a5568",
+    todayColor: "#68d391",
+    pastColor: "#fc8181",
+    futureColor: "#63b3ed",
+    focusColor: "rgba(241, 245, 249, 0.05)",
+    hoverColor: "rgba(241, 245, 249, 0.1)",
+    shadowLight: "rgba(0, 0, 0, 0.3)",
+    shadowMedium: "rgba(0, 0, 0, 0.4)",
+    shadowDark: "rgba(0, 0, 0, 0.6)",
+  },
+  fonts: {
+    handwriting: '"Kalam", "Architects Daughter", cursive',
+    casualWriting: '"Caveat", "Shadows Into Light", cursive',
+    ui: '"Architects Daughter", sans-serif',
+  },
+  spacing: {
+    lineHeight: "32px",
+    fontSize: "18px",
+    pageMargin: "3rem",
+  },
+  lineStyle: "ruled",
+  paperTexture: true,
+  bindingStyle: "modern",
+  highContrast: false,
+};
+
+// High contrast theme for accessibility
+export const highContrastTheme: Theme = {
+  id: "high-contrast",
+  name: "High Contrast",
+  description: "Maximum contrast for accessibility and low vision support",
+  category: "color-scheme",
+  colors: {
+    paperWhite: "#ffffff",
+    paperCream: "#ffffff",
+    paperGray: "#f5f5f5",
+    inkPrimary: "#000000",
+    inkSecondary: "#1a1a1a",
+    inkMuted: "#333333",
+    ruleColor: "#666666",
+    ruleColorLight: "#f0f0f0",
+    marginRed: "#cc0000",
+    bindingBrown: "#333333",
+    todayColor: "#008800",
+    pastColor: "#cc0000",
+    futureColor: "#0066cc",
+    focusColor: "rgba(0, 102, 204, 0.1)",
+    hoverColor: "rgba(0, 102, 204, 0.2)",
+    shadowLight: "rgba(0, 0, 0, 0.2)",
+    shadowMedium: "rgba(0, 0, 0, 0.3)",
+    shadowDark: "rgba(0, 0, 0, 0.5)",
+  },
+  fonts: {
+    handwriting: '"Inter", system-ui, sans-serif',
+    casualWriting: '"Inter", system-ui, sans-serif',
+    ui: '"Inter", system-ui, sans-serif',
+  },
+  spacing: {
+    lineHeight: "36px",
+    fontSize: "20px",
+    pageMargin: "3rem",
+  },
+  lineStyle: "ruled",
+  paperTexture: false,
+  bindingStyle: "minimal",
+  highContrast: true,
+};
+
+// Dotted paper theme
+export const dottedTheme: Theme = {
+  id: "dotted",
+  name: "Dotted Journal",
+  description: "Bullet journal style with dot grid pattern",
+  category: "paper-style",
+  colors: {
+    ...classicTheme.colors,
+    ruleColor: "#cbd5e1",
+    ruleColorLight: "#f1f5f9",
+  },
+  fonts: classicTheme.fonts,
+  spacing: {
+    lineHeight: "24px",
+    fontSize: "16px",
+    pageMargin: "3rem",
+  },
+  lineStyle: "dotted",
+  paperTexture: true,
+  bindingStyle: "classic",
+  highContrast: false,
+};
+
+// Export all available themes
+export const availableThemes: Theme[] = [
+  classicTheme,
+  vintageTheme,
+  modernTheme,
+  darkTheme,
+  highContrastTheme,
+  dottedTheme,
+];
+
+export const defaultTheme = classicTheme;
